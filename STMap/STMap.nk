@@ -1,0 +1,147 @@
+#! C:/Program Files/Nuke10.0v5/nuke-10.0.5.dll -nx
+version 10.0 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="1920" h="1170" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1291" stretch="1"/>
+            <splitter orientation="2">
+                <split size="587"/>
+                <dock id="" activePageId="Viewer.1" focus="true">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="517"/>
+                <dock id="" activePageId="DAG.1">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="565"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name "D:/Google Drive/cg/blink/stmap.nk"
+ frame 18
+ format "2048 872 0 0 2048 872 1 DA_2K"
+ proxy_format "1024 436 0 0 1024 436 1 DA_1K"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+CheckerBoard2 {
+ inputs 0
+ format "2048 2048 0 0 2048 2048 1 square_2K"
+ name CheckerBoard1
+ xpos 400
+ ypos -177
+}
+Reformat {
+ type scale
+ scale 2
+ name Reformat1
+ xpos 400
+ ypos 14
+}
+set N472b3800 [stack 0]
+Camera2 {
+ inputs 0
+ translate {0 0 31.60000038}
+ name Camera1
+ xpos 21
+ ypos -183
+}
+Constant {
+ inputs 0
+ channels rgb
+ format "2048 2048 0 0 2048 2048 1 square_2K"
+ name Constant1
+ xpos 180
+ ypos -609
+}
+Expression {
+ expr0 x/width
+ expr1 y/height
+ name Expression1
+ xpos 180
+ ypos -466
+}
+set N3e49c00 [stack 0]
+Sphere {
+ translate {0 {sin(frame/5)*5} 0}
+ rotate {{frame} {frame} 0}
+ name Sphere1
+ xpos 180
+ ypos -346
+}
+push 0
+ScanlineRender {
+ inputs 3
+ conservative_shader_sampling false
+ motion_vectors_type distance
+ name ScanlineRender1
+ xpos 180
+ ypos -163
+}
+Dot {
+ name Dot1
+ xpos 214
+ ypos 18
+}
+set N3e73400 [stack 0]
+Dot {
+ name Dot2
+ xpos -6
+ ypos 18
+}
+BlinkScript {
+ inputs 2
+ recompileCount 55
+ ProgramGroup 1
+ KernelDescription "2 \"STMapKernel\" iterate pixelWise 4e1b41a8333117b089643a5d5fb0dea518a76a8a9cbed98d84efac3d429fb0a9 3 \"stmap\" Read Random \"src\" Read Random \"dst\" Write Point 2 \"stmap_width\" Float 1 AAAAAA== \"stmap_height\" Float 1 AAAAAA== 2 \"st_width\" 1 1 \"st_height\" 1 1 0"
+ kernelSource "kernel STMapKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessRandom, eEdgeClamped> stmap; // the input image\n  Image<eRead, eAccessRandom, eEdgeClamped> src; // the input image\n  Image<eWrite, eAccessPoint> dst; // the output image\n\n  param:\n    float st_width;\n    float st_height;\n\n  void define() \{\n    defineParam(st_width, \"stmap_width\", 0.0f);\n    defineParam(st_height, \"stmap_height\", 0.0f);\n  \}\n\n  void process(int2 pos) \{\n\n    float4 uv = stmap(pos.x,pos.y);\n\n    float x = uv.x * st_width;\n    float y = uv.y * st_height;\n    float4 color = bilinear(src, x, y);\n    float alpha = bilinear(stmap, x, y, 3);\n\n    for (int c = 0; c < 3; c++)\n            dst(c) = color\[c];\n        dst(3) = alpha;\n  \}\n\};"
+ vectorize false
+ rebuild ""
+ STMapKernel_stmap_width {{input1.width}}
+ STMapKernel_stmap_height {{input1.height}}
+ specifiedFormat true
+ rebuild_finalise ""
+ name BlinkScript1
+ xpos -40
+ ypos 272
+}
+push $N3e73400
+push $N472b3800
+STMap {
+ inputs 2
+ uv rgb
+ name STMap1
+ xpos 180
+ ypos 272
+}
+push $N3e49c00
+Viewer {
+ inputs 2
+ frame_range 1-100
+ colour_sample_bbox {0.05078125 0.2529296875 0.0517578125 0.25390625}
+ samplepoints {{0.1259765625 0.0009765625}
+   }
+ name Viewer1
+ selected true
+ xpos 103
+ ypos 470
+}
